@@ -18,6 +18,7 @@
 #include "tagaini_config.h"
 #include "core/TextTools.h"
 #include "core/Database.h"
+#include "gui/Font.h"
 #include "gui/EntryFormatter.h"
 #include "gui/TemplateFiller.h"
 #include "gui/DetailedView.h"
@@ -47,11 +48,12 @@
 #include <QUrlQuery>
 
 DetailedViewFonts *DetailedViewFonts::_instance = 0;
-PreferenceItem<QString> DetailedViewFonts::textFont("mainWindow/detailedView", "textFont", "");
-PreferenceItem<QString> DetailedViewFonts::kanjiFont("mainWindow/detailedView", "kanjiFont", "");
-PreferenceItem<QString> DetailedViewFonts::kanaFont("mainWindow/detailedView", "kanaFont", "");
-PreferenceItem<QString> DetailedViewFonts::kanjiHeaderFont("mainWindow/detailedView", "kanjiHeaderFont", QFont("Helvetica", 28).toString());
-PreferenceItem<QString> DetailedViewFonts::kanaHeaderFont("mainWindow/detailedView", "kanaHeaderFont", "");
+
+PreferenceItem<int> DetailedViewFonts::textFontSize("mainWindow/detailedView", "textFontSize", -1);
+PreferenceItem<int> DetailedViewFonts::kanjiFontSize("mainWindow/detailedView", "kanjiFontSize", -1);
+PreferenceItem<int> DetailedViewFonts::kanaFontSize("mainWindow/detailedView", "kanaFontSize", -1);
+PreferenceItem<int> DetailedViewFonts::kanjiHeaderFontSize("mainWindow/detailedView", "kanjiHeaderFontSize", 28);
+PreferenceItem<int> DetailedViewFonts::kanaHeaderFontSize("mainWindow/detailedView", "kanaHeaderFontSize", -1);
 
 PreferenceItem<bool> DetailedView::smoothScrolling("mainWindow/detailedView", "smoothScrolling", true);
 PreferenceItem<int> DetailedView::historySize("mainWindow/detailedView", "historySize", 1000);
@@ -475,12 +477,18 @@ void DetailedViewJob::__init()
 
 DetailedViewFonts::DetailedViewFonts(QWidget *parent) : QObject(parent)
 {
-	// Init fonts and colors with the default values
-	_font[DefaultText].fromString(textFont.value());
-	_font[Kanji].fromString(kanjiFont.value());
-	_font[Kana].fromString(kanaFont.value());
-	_font[KanjiHeader].fromString(kanjiHeaderFont.value());
-	_font[KanaHeader].fromString(kanaHeaderFont.value());
+	int pointSize;
+
+	// Init fonts and colors with the preferences values
+	_font[DefaultText] = QFont();
+
+	pointSize = DetailedViewFonts::textFontSize.value();
+	if (pointSize > 0)
+		_font[DefaultText].setPointSize(pointSize);
+	_font[Kanji] = QFont(Font::jpFontFamily(), DetailedViewFonts::kanjiFontSize.value());
+	_font[Kana] = QFont(Font::jpFontFamily(), DetailedViewFonts::kanaFontSize.value());
+	_font[KanjiHeader] = QFont(Font::jpFontFamily(), DetailedViewFonts::kanjiHeaderFontSize.value());
+	_font[KanaHeader] = QFont(Font::jpFontFamily(), DetailedViewFonts::kanaHeaderFontSize.value());
 
 	_color[DefaultText] = defaultColor(DefaultText);
 	_color[Kanji] = defaultColor(Kanji);

@@ -24,6 +24,93 @@
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QLabel>
+#include <QRegularExpression>
+
+struct MenuHierarchyEntry {
+	QRegularExpression regex;
+	QString title;
+	QString parent;
+};
+
+// TODO pass this as an argument
+static QList<MenuHierarchyEntry> posHierarchy = {
+	{ QRegularExpression("(v1.*|vz)"), "Ichidan verb", "v.+" },
+	{ QRegularExpression("v2.*"), "Nidan verb", "v.+" },
+	{ QRegularExpression("v4.*"), "Yondan verb", "v.+" },
+	{ QRegularExpression("v5.*"), "Godan verb", "v.+" },
+	{ QRegularExpression("adj.*"), "Adjective", NULL },
+	{ QRegularExpression("adv.*"), "Adverb", NULL },
+	{ QRegularExpression("(n|n-.+)"), "Noun", NULL },
+	{ QRegularExpression("(aux|aux-.+)"), "Auxiliary", NULL },
+	{ QRegularExpression("v.+"), "Verb", NULL },
+};
+
+static QMenu *findParentMenu(const MenuHierarchyEntry &foo, QMap<QString, QMenu *> &subMenus, QMenu *root, const QList<MenuHierarchyEntry> &hierarchy)
+{
+	QMenu *parent = NULL;
+	QMenu *ret;
+
+	// Already exists? Just return it
+	ret = subMenus[foo.regex.pattern()];
+	if (ret)
+		return ret;
+
+	// Else find our parent
+	if (foo.parent == NULL)
+		parent = root;
+	else {
+		for (auto pair : hierarchy)
+			if (pair.regex.pattern() == foo.parent) {
+				parent = findParentMenu(pair, subMenus, root, hierarchy);
+				break;
+			}
+	}
+
+	// Fallback in case we messed up our hierarchy
+	if (parent == NULL)
+		parent = root;
+
+	// And create a menu under it
+	ret = new QMenu(parent);
+	// TODO translate!
+	ret->setTitle(foo.title);
+	parent->addAction(ret->menuAction());
+	subMenus[foo.regex.pattern()] = ret;
+
+	return ret;
+}
+
+static QActionGroup *addCheckableProperties(const QVector<QPair<QString, QString> >&defs, QMenu *menu, const QList<MenuHierarchyEntry> &hierarchy = {})
+{
+	QList<QString> strList;
+	QMap<QString, QMenu *> subMenus;
+
+	for (int i = 0; i < defs.size(); i++) {
+		QString translated = QCoreApplication::translate("JMdictLongDescs", defs[i].second.toLatin1());
+		strList << QString(translated.replace(0, 1, translated[0].toUpper()));
+	}
+	//QStringList sortedList(strList);
+	//qSort(sortedList.begin(), sortedList.end());
+	QActionGroup *actionGroup = new QActionGroup(menu);
+	actionGroup->setExclusive(false);
+	for (auto str : strList) {
+		int idx = strList.indexOf(str);
+		QMenu *menuToAdd = menu;
+		QAction *action = actionGroup->addAction(str);
+		action->setCheckable(true);
+		action->setProperty("TJpropertyIndex", idx);
+
+		QString abbr(defs[idx].first);
+		for (auto &pair : hierarchy)
+			if (pair.regex.match(abbr, 0, QRegularExpression::NormalMatch, QRegularExpression::AnchoredMatchOption).hasMatch()) {
+				menuToAdd = findParentMenu(pair, subMenus, menu, hierarchy);
+				break;
+			}
+
+		menuToAdd->addAction(action);
+	}
+	return actionGroup;
+}
 
 JMdictFilterWidget::JMdictFilterWidget(QWidget *parent) : SearchFilterWidget(parent, "wordsdic")
 {
@@ -59,7 +146,7 @@ JMdictFilterWidget::JMdictFilterWidget(QWidget *parent) : SearchFilterWidget(par
 
 		_posButton = new QPushButton(tr("Part of speech"), this);
 		QMenu *menu = new QMenu(this);
-		QActionGroup *actionGroup = addCheckableProperties(JMdictPlugin::posEntities(), menu);
+		QActionGroup *actionGroup = addCheckableProperties(JMdictPlugin::posEntities(), menu, posHierarchy);
 		_posButton->setMenu(menu);
 		hLayout->addWidget(_posButton);
 		connect(actionGroup, SIGNAL(triggered(QAction *)), this, SLOT(onPosTriggered(QAction *)));

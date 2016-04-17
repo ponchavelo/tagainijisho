@@ -137,27 +137,6 @@ void JMdictFilterWidget::updateMiscFilteredProperties()
 	}
 }
 
-QActionGroup *JMdictFilterWidget::addCheckableProperties(const QVector<QPair<QString, QString> >&defs, QMenu *menu)
-{
-	QList<QString> strList;
-	for (int i = 0; i < defs.size(); i++) {
-		QString translated = QCoreApplication::translate("JMdictLongDescs", defs[i].second.toLatin1());
-		strList << QString(translated.replace(0, 1, translated[0].toUpper()));
-	}
-	QStringList sortedList(strList);
-	qSort(sortedList.begin(), sortedList.end());
-	QActionGroup *actionGroup = new QActionGroup(menu);
-	actionGroup->setExclusive(false);
-	foreach(QString str, sortedList) {
-		int idx = strList.indexOf(str);
-		QAction *action = actionGroup->addAction(str);
-		action->setCheckable(true);
-		menu->addAction(action);
-		action->setProperty("TJpropertyIndex", idx);
-	}
-	return actionGroup;
-}
-
 void JMdictGUIPlugin::training(YesNoTrainer::TrainingMode mode, const QString &queryString)
 {
 	bool restart = false;

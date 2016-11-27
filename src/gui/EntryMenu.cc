@@ -25,7 +25,7 @@
 #include <QModelIndexList>
 #include <QMenu>
 
-EntryMenu::EntryMenu(QObject *parent) : QObject(parent), copyWritingAction(0), copyReadingAction(0), addToStudyAction(QIcon(":/images/icons/flag-blue.png"), tr("Add to &study list"), 0), removeFromStudyAction(QIcon(":/images/icons/flag-black.png"), tr("Remove from &study list"), 0), alreadyKnownAction(QIcon(":/images/icons/flag-green.png"), tr("Already &known"), 0), resetTrainingAction(QIcon(":/images/icons/flag-red.png"), tr("&Reset score"), 0), setTagsAction(QIcon(":/images/icons/tags.png"), tr("Set &tags..."), 0), addTagsAction(QIcon(":/images/icons/tags-add.png"), tr("&Add tags..."), 0), setNotesAction(QIcon(":/images/icons/notes.png"), tr("Edit &notes..."), 0), lastTagsMenu(tr("Recently added tags..."), 0)
+EntryMenu::EntryMenu(QObject *parent) : QObject(parent), copyWritingAction(0), copyReadingAction(0), copyMeaningAction(0), addToStudyAction(QIcon(":/images/icons/flag-blue.png"), tr("Add to &study list"), 0), removeFromStudyAction(QIcon(":/images/icons/flag-black.png"), tr("Remove from &study list"), 0), alreadyKnownAction(QIcon(":/images/icons/flag-green.png"), tr("Already &known"), 0), resetTrainingAction(QIcon(":/images/icons/flag-red.png"), tr("&Reset score"), 0), setTagsAction(QIcon(":/images/icons/tags.png"), tr("Set &tags..."), 0), addTagsAction(QIcon(":/images/icons/tags-add.png"), tr("&Add tags..."), 0), setNotesAction(QIcon(":/images/icons/notes.png"), tr("Edit &notes..."), 0), lastTagsMenu(tr("Recently added tags..."), 0)
 {
 	lastTagsMenu.setIcon(QIcon(":/images/icons/tags-add.png"));
 	setEnabledAll(false);
@@ -36,7 +36,8 @@ void EntryMenu::populateMenu(QMenu *menu)
 {
 	menu->addAction(&copyWritingAction);
 	menu->addAction(&copyReadingAction);
-	menu->addSeparator();
+    menu->addAction(&copyMeaningAction);
+    menu->addSeparator();
 	menu->addAction(&addToStudyAction);
 	menu->addAction(&removeFromStudyAction);
 	menu->addAction(&alreadyKnownAction);
@@ -74,6 +75,7 @@ void EntryMenu::setEnabledAll(bool enabled)
 	lastTagsMenu.setEnabled(enabled);
 	copyWritingAction.setVisible(false);
 	copyReadingAction.setVisible(false);
+    copyMeaningAction.setVisible(false);
 }
 
 void EntryMenu::updateStatus(const QList<ConstEntryPointer>& entries)
@@ -109,6 +111,7 @@ void EntryMenu::updateStatus(const QList<ConstEntryPointer>& entries)
 		ConstEntryPointer entry(entries[0]);
 		const QStringList& writings(entry->writings());
 		const QStringList& readings(entry->readings());
+        const QStringList& meanings(entry->meanings());
 
 		if (!writings.isEmpty()) {
 			copyWritingAction.setVisible(true);
@@ -122,9 +125,16 @@ void EntryMenu::updateStatus(const QList<ConstEntryPointer>& entries)
 		} else {
 			copyReadingAction.setVisible(false);
 		}
-	} else {
+        if (!meanings.isEmpty()) {
+            copyMeaningAction.setVisible(true);
+            copyMeaningAction.setText(tr("Copy \"%1\" to clipboard").arg(meanings[0]));
+        } else {
+            copyMeaningAction.setVisible(false);
+        }
+    } else {
 		copyWritingAction.setVisible(false);
 		copyReadingAction.setVisible(false);
+        copyMeaningAction.setVisible(false);
 	}
 }
 

@@ -37,6 +37,7 @@ private:
 protected slots:
 	virtual void copyWriting();
 	virtual void copyReading();
+    virtual void copyMeaning();
 	virtual void addToStudy();
 	virtual void removeFromStudy();
 	virtual void alreadyKnown();

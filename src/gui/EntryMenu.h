@@ -41,6 +41,7 @@ class EntryMenu : public QObject
 protected:
 	QAction copyWritingAction;
 	QAction copyReadingAction;
+    QAction copyMeaningAction;
 	QAction addToStudyAction;
 	QAction removeFromStudyAction;
 	QAction alreadyKnownAction;

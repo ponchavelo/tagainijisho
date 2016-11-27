@@ -26,6 +26,7 @@ SingleEntryView::SingleEntryView(QObject *parent) : EntryMenu(parent), _entry(0)
 {
 	connect(&copyWritingAction, SIGNAL(triggered()), this, SLOT(copyWriting()));
 	connect(&copyReadingAction, SIGNAL(triggered()), this, SLOT(copyReading()));
+    connect(&copyMeaningAction, SIGNAL(triggered()), this, SLOT(copyMeaning()));
 	connect(&addToStudyAction, SIGNAL(triggered()), this, SLOT(addToStudy()));
 	connect(&removeFromStudyAction, SIGNAL(triggered()), this, SLOT(removeFromStudy()));
 	connect(&alreadyKnownAction, SIGNAL(triggered()), this, SLOT(alreadyKnown()));
@@ -65,6 +66,16 @@ void SingleEntryView::copyReading()
 		return;
 
 	QApplication::clipboard()->setText(readings[0]);
+}
+
+void SingleEntryView::copyMeaning()
+{
+    const QStringList& meanings(entry()->meanings());
+
+    if (meanings.isEmpty())
+        return;
+
+    QApplication::clipboard()->setText(meanings[0]);
 }
 
 void SingleEntryView::addToStudy()

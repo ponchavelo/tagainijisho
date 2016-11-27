@@ -74,6 +74,7 @@ public slots:
 protected slots:
 	void copyWriting();
 	void copyReading();
+    void copyMeaning();
 	void studySelected();
 	void unstudySelected();
 	void markAsKnown();

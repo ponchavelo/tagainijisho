@@ -50,6 +50,7 @@ EntriesViewHelper::EntriesViewHelper(QAbstractItemView* client, EntryDelegateLay
 
 	connect(&copyWritingAction, SIGNAL(triggered()), this, SLOT(copyWriting()));
 	connect(&copyReadingAction, SIGNAL(triggered()), this, SLOT(copyReading()));
+    connect(&copyMeaningAction, SIGNAL(triggered()), this, SLOT(copyMeaning()));
 	connect(&addToStudyAction, SIGNAL(triggered()), this, SLOT(studySelected()));
 	connect(&removeFromStudyAction, SIGNAL(triggered()), this, SLOT(unstudySelected()));
 	connect(&alreadyKnownAction, SIGNAL(triggered()), this, SLOT(markAsKnown()));
@@ -159,6 +160,18 @@ struct CopyReadingHandler : BatchHandler
 	}
 };
 
+struct CopyMeaningHandler : BatchHandler
+{
+    void apply(const EntryPointer &e) const
+    {
+        const QStringList& meanings(e->meanings());
+
+        if (meanings.isEmpty())
+            return;
+
+        QApplication::clipboard()->setText(meanings[0]);
+    }
+};
 void EntriesViewHelper::copyWriting()
 {
 	applyOnSelection(CopyWritingHandler());
@@ -167,6 +180,11 @@ void EntriesViewHelper::copyWriting()
 void EntriesViewHelper::copyReading()
 {
 	applyOnSelection(CopyReadingHandler());
+}
+
+void EntriesViewHelper::copyMeaning()
+{
+    applyOnSelection(CopyMeaningHandler());
 }
 
 void EntriesViewHelper::studySelected()
